@@ -145,7 +145,7 @@ def bw_cross_validation(data, current, addedft):
         
 def main():
     datafile = input("Enter your data's file name to test: ")
-    data = np.loadtxt(filename)
+    data = np.loadtxt(datafile)
     mode = int(input("Type the number of the algorithm you would like to run\n\t1. Forward Selection\n\t2. Backward Elimination\n>> "))
     print(f"This dataset has {data.shape[1]-1} features and {data.shape[0]} instances")
     if(mode == 1):
