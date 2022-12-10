@@ -32,30 +32,33 @@ def feature_search_demo(data):
     print("\nBeginning search...\n")
     
     #loops over features to consider
-    for i in range(1, data.shape[1]):
+    for i in range(0, data.shape[1]):
         print(f"On level {i} of the search tree")
         addedft = []
         bestacc = 0
         
-        #loops over possible features to add
-        for j in range(1, data.shape[1]):
-            if(j not in current):
-                print(f"  Consider adding feature {j}")
-                
-                #computing accuracy of the feature set with the added feature and compare to the current best accuracy
-                acc = cross_validation(data, current, j)
-                if acc > bestacc:
-                   bestacc = acc
-                   addedft = j
+        if(i == 0):
+            best_best_acc = cross_validation(data, current, 0)
+        else:
+            #loops over possible features to add
+            for j in range(1, data.shape[1]):
+                if(j not in current):
+                   print(f"  Consider adding feature {j}")
+
+                    #computing accuracy of the feature set with the added feature and compare to the current best accuracy
+                   acc = cross_validation(data, current, j)
+                   if acc > bestacc:
+                       bestacc = acc
+                       addedft = j
         
-        current.append(addedft)          
-        print(f"\nOn level {i} I added the feature {addedft} to the feature set which is now {current}")    
-        print(f"The feature had an accuracy of {round(bestacc*100, 3)}%\n")
+            current.append(addedft)          
+            print(f"\nOn level {i} I added the feature {addedft} to the feature set which is now {current}")    
+            print(f"The feature had an accuracy of {round(bestacc*100, 3)}%\n")
         
-        #finds the best accuracy out of all feature sets computed
-        if bestacc > best_best_acc:
-            best_best_acc = bestacc
-            best_set.append(addedft)
+            #finds the best accuracy out of all feature sets computed
+            if bestacc > best_best_acc:
+                best_best_acc = bestacc
+                best_set.append(addedft)
         
     print(f"\nBest feature set is {best_set} with an accuracy of {round(best_best_acc*100, 3)}%")
    
@@ -72,38 +75,43 @@ def backwards_search_demo(data):
         best_set.append(i)
         
     print("\nBeginning search...\n")
-    for i in range(1, data.shape[1]):
+    for i in range(0, data.shape[1]):
         print(f"On level {i} of the search tree")
         addedft = 0
         bestacc = 0
-        for j in range(1, data.shape[1]):
-            if(j in current):
-                print(f"  Consider removing feature {j}")
-                
-                acc = bw_cross_validation(data, current, j)
-                if acc > bestacc:
-                   bestacc = acc
-                   addedft = j
+        if(i == 0):
+            best_best_acc = bw_cross_validation(data, current, 0)
+            print('\n')
+        else:
+            for j in range(1, data.shape[1]):
+                if(j in current):
+                    print(f"  Consider removing feature {j}")
+
+                    acc = bw_cross_validation(data, current, j)
+                    if acc > bestacc:
+                       bestacc = acc
+                       addedft = j
         
-        #removes ft from current set
-        current.remove(addedft)          
-        print(f"\nOn level {i} I removed the feature {addedft} to the feature set which is now {current}")    
-        print(f"The feature had an accuracy of {round(bestacc*100, 3)}%\n")
-        if bestacc > best_best_acc:
-            best_best_acc = bestacc
-            best_set.remove(addedft)
+            #removes ft from current set
+            current.remove(addedft)          
+            print(f"\nOn level {i} I removed the feature {addedft} to the feature set which is now {current}")    
+            print(f"The feature had an accuracy of {round(bestacc*100, 3)}%\n")
+            if bestacc > best_best_acc:
+                best_best_acc = bestacc
+                best_set.remove(addedft)
         
     print(f"\nBest feature set is {best_set} with an accuracy of {round(best_best_acc*100, 3)}%")
                        
 
 #computes accuracy of the classifier
 def cross_validation(data, current, addedft):
+    time1 = time.time()
     classified = 0
-    
     #copies current feature set and the added feature into the curr array
     curr = 0
     curr = current[:]
-    curr.append(addedft)
+    if(addedft != 0):
+        curr.append(addedft)
     
     #loop over all instances in the dataset
     for i in range(0, data.shape[0]):
@@ -131,6 +139,8 @@ def cross_validation(data, current, addedft):
         #calculates total classified labels            
         if label_obj_to_classify == nn_label:
             classified+=1
+    time2 = time.time()
+    #print(f"Time: {round(time2 - time1, 4)}\n")
     print(f"  Accuracy of set {curr}: {round(classified / data.shape[0], 2)}")        
     return classified / len(data)
 
@@ -139,7 +149,8 @@ def bw_cross_validation(data, current, addedft):
     classified = 0
     curr = 0
     curr = current[:]
-    curr.remove(addedft)
+    if(addedft != 0):
+        curr.remove(addedft)
     for i in range(0, data.shape[0]):
         obj_to_classify = data[i, 1:]
         label_obj_to_classify = data[i, 0]
