@@ -1,6 +1,9 @@
 import time
 import numpy as np
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 import pandas as pd
+
 #       sleeping cat
 #         |\      _,,,---,,_
 #   ZZZzz /,`.-'`'    -.  ;-;;,_
@@ -19,7 +22,7 @@ def dist(obj, data, fts):
     return np.sqrt(distance)
         
 #feature search function
-def feature_search_demo(data):
+def feature_search_demo(data, df):
             
     #initializes the list of current features and best set of features
     current = []
@@ -36,11 +39,13 @@ def feature_search_demo(data):
         
         if(i == 0):
             best_best_acc = cross_validation(data, current, 0)
+            df2 = {'Current Feature Set': str(current), 'Accuracy': str(round(best_best_acc*100, 3))}
+            df = df.append(df2, ignore_index = True) 
         else:
             #loops over possible features to add
             for j in range(1, data.shape[1]):
                 if(j not in current):
-                   print(f"  Consider adding feature {j}")
+                   #print(f"  Consider adding feature {j}")
 
                     #computing accuracy of the feature set with the added feature and compare to the current best accuracy
                    acc = cross_validation(data, current, j)
@@ -48,7 +53,9 @@ def feature_search_demo(data):
                        bestacc = acc
                        addedft = j
         
-            current.append(addedft)          
+            current.append(addedft)
+            df2 = {'Current Feature Set': str(current), 'Accuracy': str(round(bestacc*100, 3))}
+            df = df.append(df2, ignore_index = True)          
             print(f"\nOn level {i} I added the feature {addedft} to the feature set which is now {current}")    
             print(f"The feature had an accuracy of {round(bestacc*100, 3)}%\n")
         
@@ -57,10 +64,11 @@ def feature_search_demo(data):
                 best_best_acc = bestacc
                 best_set.append(addedft)
         
-    print(f"\nBest feature set is {best_set} with an accuracy of {round(best_best_acc*100, 3)}%")
+    print(f"done")
+    return df
    
 #backwards feature search function, very similar to the forward search function             
-def backwards_search_demo(data):
+def backwards_search_demo(data, df):
     
     current = []
     best_set = []
@@ -73,16 +81,18 @@ def backwards_search_demo(data):
         
     print("\nBeginning search...\n")
     for i in range(0, data.shape[1]):
-        print(f"On level {i} of the search tree")
+        #print(f"On level {i} of the search tree")
         addedft = 0
         bestacc = 0
         if(i == 0):
             best_best_acc = bw_cross_validation(data, current, 0)
-            print('\n')
+            df2 = {'Current Feature Set': str(current), 'Accuracy': str(round(best_best_acc*100, 3))}
+            df = df.append(df2, ignore_index = True) 
+            #print('\n')
         else:
             for j in range(1, data.shape[1]):
                 if(j in current):
-                    print(f"  Consider removing feature {j}")
+                    #print(f"  Consider removing feature {j}")
 
                     acc = bw_cross_validation(data, current, j)
                     if acc > bestacc:
@@ -90,19 +100,21 @@ def backwards_search_demo(data):
                        addedft = j
         
             #removes ft from current set
-            current.remove(addedft)          
+            current.remove(addedft)     
+            df2 = {'Current Feature Set': str(current), 'Accuracy': str(round(bestacc*100, 3))}
+            df = df.append(df2, ignore_index = True)          
             print(f"\nOn level {i} I removed the feature {addedft} to the feature set which is now {current}")    
             print(f"The feature had an accuracy of {round(bestacc*100, 3)}%\n")
             if bestacc > best_best_acc:
                 best_best_acc = bestacc
                 best_set.remove(addedft)
         
-    print(f"\nBest feature set is {best_set} with an accuracy of {round(best_best_acc*100, 3)}%")
+    print(f"done")
+    return df
                        
 
 #computes accuracy of the classifier
 def cross_validation(data, current, addedft):
-    time1 = time.time()
     classified = 0
     #copies current feature set and the added feature into the curr array
     curr = 0
@@ -136,9 +148,8 @@ def cross_validation(data, current, addedft):
         #calculates total classified labels            
         if label_obj_to_classify == nn_label:
             classified+=1
-    time2 = time.time()
-    print(f"Time: {round(time2 - time1, 4)}\n")
-    print(f"  Accuracy of set {curr}: {round(classified / data.shape[0], 2)}")        
+    #print(f"Time: {round(time2 - time1, 4)}\n")
+    #print(f"  Accuracy of set {curr}: {round(classified / data.shape[0], 2)}")        
     return classified / len(data)
 
 #essentially the same as forward except it will remove instead of appending features                
@@ -166,20 +177,29 @@ def bw_cross_validation(data, current, addedft):
                     
         if label_obj_to_classify == nn_label:
             classified+=1
-    print(f"  Accuracy of set {curr}: {round(classified / data.shape[0], 2)}")        
+    #print(f"  Accuracy of set {curr}: {round(classified / data.shape[0], 2)}")        
     return classified / len(data)
                 
         
         
 def main():
-    datafile = input("Enter your data's file name to test: ")
-    data = np.loadtxt(datafile)
-    mode = int(input("Type the number of the algorithm you would like to run\n\t1. Forward Selection\n\t2. Backward Elimination\n>> "))
-    print(f"This dataset has {data.shape[1]-1} features and {data.shape[0]} instances")
-    if(mode == 1):
-        feature_search_demo(data)
-    if(mode == 2):
-        backwards_search_demo(data)
+    df = pd.DataFrame(columns=['Current Feature Set', 'Accuracy'])
+    df3 = pd.DataFrame(columns=['Current Feature Set', 'Accuracy'])
+    data = largedata
+    time1 = time.time()
+    df = feature_search_demo(data, df)
+    time2 = time.time()
+    print(f"Time: {round(time2 - time1, 4)}\n")
+    time1 = 0
+    time2 = 0
+    time1 = time.time()
+    df3 = backwards_search_demo(data, df3)
+    time2 = time.time()
+    print(f"Time: {round(time2 - time1, 4)}\n")
+    print(df)
+    print(df3)
+    df3.to_csv("largebw.csv")
+    df.to_csv("large.csv")
     return
 
 if __name__ == "__main__":
